@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .progress {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 5px;
+            width: 0;
+        }
+        .album-art-container {
+            max-height: 400px;
+            overflow: hidden;
+        }
+        body {
+            background-image: url('Musicplayer/images/backgroundd.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .bg-overlay {
+            background-color: rgba(0, 0, 0, 0.796);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="bg-overlay flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div class="text-center">
+            <h1 id="song-title" class="text-xl font-bold text-gray-800">Song Title</h1>
+            <p id="artist" class="text-gray-500">Artist Name</p>
+        </div>
+        <div class="mt-4 album-art-container">
+            <img id="album-art" src="https://via.placeholder.com/300" alt="Album Art" class="w-full object-contain rounded-lg">
+        </div>
+        <div class="mt-4">
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="flex justify-between text-sm text-gray-500 mt-1">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+        <div class="flex justify-center space-x-4 mt-4">
+            <button id="prev-btn" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <button id="play-pause-btn" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600">
+                <svg class="w-6 h-6 play-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-6.504-3.76A1 1 0 007 8.176v7.648a1 1 0 001.248.968l6.504-3.76a1 1 0 000-1.736z"></path>
+                </svg>
+                <svg class="w-6 h-6 pause-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                </svg>
+            </button>
+            <button id="next-btn" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const audio = new Audio();
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progress = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const songTitle = document.getElementById('song-title');
+        const artist = document.getElementById('artist');
+        const albumArt = document.getElementById('album-art');
+
+        const songs = [
+            {
+                title: "Bahubali 2",
+                artist: "Saahore Bahubali",
+                src: "bahubali.mp3",
+                albumArt: "bahubali.jpg"
+            },
+            {
+                title: "Guntur Kaaram",
+                artist: "Boy's Anthem",
+                src: "gunturkaram.mp3",
+                albumArt: "gunturkaram.jpg"
+            },
+            {
+                title: "Gabbar Singh",
+                artist: "Dekho Dekho Gabbarsingh",
+                src: "gabbarsingh.mp3",
+                albumArt: "gabbarsingh.jpg"
+            },
+            {
+                title: "Pushpa",
+                artist: "Eyy bidda Naa adda",
+                src: "pushpa.mp3",
+                albumArt: "Pushpa.jpeg"
+            },
+        ];
+
+        let currentSongIndex = 0;
+        let isPlaying = false;
+
+        function loadSong(index) {
+            const song = songs[index];
+            songTitle.textContent = song.title;
+            artist.textContent = song.artist;
+            albumArt.src = song.albumArt;
+            audio.src = song.src;
+            // Removed audio.load() as it's handled by play()
+            if (isPlaying) audio.play();
+        }
+
+        function playPause() {
+            if (isPlaying) {
+                audio.pause();
+                playPauseBtn.querySelector('.play-icon').classList.remove('hidden');
+                playPauseBtn.querySelector('.pause-icon').classList.add('hidden');
+            } else {
+                audio.play().catch(error => console.log("Play failed:", error)); // Added error handling
+                playPauseBtn.querySelector('.play-icon').classList.add('hidden');
+                playPauseBtn.querySelector('.pause-icon').classList.remove('hidden');
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            loadSong(currentSongIndex);
+            if (isPlaying) audio.play();
+        }
+
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            loadSong(currentSongIndex);
+            if (isPlaying) audio.play();
+        }
+
+        function updateProgress() {
+            const { currentTime, duration } = audio;
+            if (duration) {
+                const progressPercent = (currentTime / duration) * 100;
+                progress.style.width = `${progressPercent}%`;
+                currentTimeEl.textContent = formatTime(currentTime);
+                durationEl.textContent = formatTime(duration);
+            }
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        function setProgress(e) {
+            const width = progressBar.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        }
+
+        playPauseBtn.addEventListener('click', playPause);
+        prevBtn.addEventListener('click', prevSong);
+        nextBtn.addEventListener('click', nextSong);
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('ended', nextSong);
+        progressBar.addEventListener('click', setProgress);
+
+        loadSong(currentSongIndex);
+    </script>
+</body>
+</html>
